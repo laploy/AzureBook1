@@ -1,0 +1,24 @@
+git clone https://github.com/Azure-Samples/dotnet-core-api
+
+cd dotnet-core-api
+dotnet restore
+dotnet run
+
+az webapp deployment user set --user-name <username> --password <password>
+
+az group create --name myResourceGroup --location "West Europe"
+
+az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku FREE
+
+az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --deployment-local-git
+
+git remote add azure <deploymentLocalGitUrl-from-create-step>
+
+git push azure master
+
+dotnet run
+
+az resource update --name web --resource-group myResourceGroup --namespace Microsoft.Web --resource-type config --parent sites/<app_name> --set properties.cors.allowedOrigins="['http://localhost:5000']" --api-version 2015-06-01
+
+az group delete --name myResourceGroup
+

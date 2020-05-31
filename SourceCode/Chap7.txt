@@ -1,0 +1,124 @@
+
+Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
+
+az login
+
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+sudo apt-get update
+sudo apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
+
+curl -sL https://packages.microsoft.com/keys/microsoft.asc |
+    gpg --dearmor |
+    sudo tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
+	
+AZ_REPO=$(lsb_release -cs)
+echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+    sudo tee /etc/apt/sources.list.d/azure-cli.list
+
+sudo apt-get update
+sudo apt-get install azure-cli
+
+# -----------------------------------------------------------
+
+#!/bin/bash
+
+warurl=https://raw.githubusercontent.com/Azure-Samples/html-docs-hello-world/master/index.html
+webappname=mywebapp$RANDOM
+
+# Download sample static HTML page
+curl $warurl --output index.html
+
+# Create a resource group.
+az group create --location westeurope --name myResourceGroup
+
+# Create an App Service plan in `FREE` tier.
+az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku FREE
+
+# Create a web app.
+az webapp create --name $webappname --resource-group myResourceGroup --plan myAppServicePlan
+
+# Get FTP publishing profile and query for publish URL and credentials
+creds=($(az webapp deployment list-publishing-profiles --name $webappname --resource-group myResourceGroup \
+--query "[?contains(publishMethod, 'FTP')].[publishUrl,userName,userPWD]" --output tsv))
+
+# Use cURL to perform FTP upload. You can use any FTP tool to do this instead. 
+curl -T index.html -u ${creds[1]}:${creds[2]} ${creds[0]}/
+
+# Copy the result of the following command into a browser to see the static HTML site.
+echo http://$webappname.azurewebsites.net
+
+
+# -----------------------------------------------------------
+
+#!/bin/bash
+
+# Replace the following URL with a public GitHub repo URL
+gitrepo=https://github.com/Azure-Samples/php-docs-hello-world
+webappname=mywebapp$RANDOM
+
+# Create a resource group.
+az group create --location westeurope --name myResourceGroup
+
+# Create an App Service plan in `FREE` tier.
+az appservice plan create --name $webappname --resource-group myResourceGroup --sku FREE
+
+# Create a web app.
+az webapp create --name $webappname --resource-group myResourceGroup --plan $webappname
+
+# Deploy code from a public GitHub repository. 
+az webapp deployment source config --name $webappname --resource-group myResourceGroup \
+--repo-url $gitrepo --branch master --manual-integration
+
+# Copy the result of the following command into a browser to see the web app.
+echo http://$webappname.azurewebsites.net
+
+
+# -----------------------------------------------------------
+
+#/bin/bash
+
+# Variables
+appName="AppServiceManualScale$random"
+location="WestUS"
+
+# Create a Resource Group
+az group create --name myResourceGroup --location $location
+
+# Create App Service Plans
+az appservice plan create --name AppServiceManualScalePlan --resource-group myResourceGroup --location $location --sku B1
+
+# Add a Web App
+az webapp create --name $appName --plan AppServiceManualScalePlan --resource-group myResourceGroup
+
+# Scale Web App to 2 Workers
+az appservice plan update --number-of-workers 2 --name AppServiceManualScalePlan --resource-group myResourceGroup
+
+# -----------------------------------------------------------
+
+#/bin/bash
+
+# Variables
+trafficManagerDnsName="myDnsName$random"
+app1Name="AppServiceTM1$random"
+app2Name="AppServiceTM2$random"
+location1="WestUS"
+location2="EastUS"
+
+# Create a Resource Group
+az group create --name myResourceGroup --location $location1
+
+# Create a Traffic Manager Profile
+az network traffic-manager profile create --name $trafficManagerDnsName-tmp --resource-group myResourceGroup --routing-method Performance --unique-dns-name $trafficManagerDnsName
+
+# Create App Service Plans in two Regions
+az appservice plan create --name $app1Name-Plan --resource-group myResourceGroup --location $location1 --sku S1
+az appservice plan create --name $app2Name-Plan --resource-group myResourceGroup --location $location2 --sku S1
+
+# Add a Web App to each App Service Plan
+site1=$(az webapp create --name $app1Name --plan $app1Name-Plan --resource-group myResourceGroup --query id --output tsv)
+site2=$(az webapp create --name $app2Name --plan $app2Name-Plan --resource-group myResourceGroup --query id --output tsv)
+
+# Assign each Web App as an Endpoint for high-availabilty
+az network traffic-manager endpoint create -n $app1Name-$location1 --profile-name $trafficManagerDnsName-tmp -g myResourceGroup --type azureEndpoints --target-resource-id $site1
+az network traffic-manager endpoint create -n $app2Name-$location2 --profile-name $trafficManagerDnsName-tmp -g myResourceGroup --type azureEndpoints --target-resource-id $site2

@@ -1,0 +1,543 @@
+git clone https://github.com/azure-samples/dotnetcore-sqldb-tutorial
+cd dotnetcore-sqldb-tutorial
+
+dotnet tool install -g dotnet-ef --version 3.1.1
+dotnet-ef database update
+dotnet run
+
+az group create --name myResourceGroup --location "West Europe"
+
+az sql server create --name <server_name> --resource-group myResourceGroup --location "West Europe" --admin-user <db_username> --admin-password <db_password>
+
+az sql server firewall-rule create --resource-group myResourceGroup --server <server_name> --name AllowAllIps --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+
+az sql db create --resource-group myResourceGroup --server <server_name> --name coreDB --service-objective S0
+
+Server=tcp:<server_name>.database.windows.net,1433;Database=coreDB;User ID=<db_username>;Password=<db_password>;Encrypt=true;Connection Timeout=30;
+
+az webapp deployment user set --user-name <username> --password <password>
+
+az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku FREE
+
+az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --deployment-local-git
+
+
+az webapp config connection-string set --resource-group myResourceGroup --name <app name> --settings MyDbConnection="<connection_string>" --connection-string-type SQLServer
+
+az webapp config appsettings set --name <app_name> --resource-group myResourceGroup --settings ASPNETCORE_ENVIRONMENT="Production"
+
+services.AddDbContext<MyDatabaseContext>(options =>
+        options.UseSqlite("Data Source=localdatabase.db"));
+		
+// Use SQL Database if in Azure, otherwise, use SQLite
+if(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+    services.AddDbContext<MyDatabaseContext>(options =>
+            options.UseSqlServer(Configuration.GetConnectionString("MyDbConnection")));
+else
+    services.AddDbContext<MyDatabaseContext>(options =>
+            options.UseSqlite("Data Source=localdatabase.db"));
+
+// Automatically perform database migration
+services.BuildServiceProvider().GetService<MyDatabaseContext>().Database.Migrate();
+
+git add .
+git commit -m "connect to SQLDB in Azure"
+
+git remote add azure <deploymentLocalGitUrl-from-create-step>
+
+git push azure master
+
+http://<app_name>.azurewebsites.net
+
+public bool Done { get; set; }
+
+dotnet ef migrations add AddProperty
+
+dotnet ef database update
+
+public async Task<IActionResult> Create([Bind("ID,Description,CreatedDate,Done")] Todo todo)
+
+<div class="form-group">
+    <label asp-for="Done" class="col-md-2 control-label"></label>
+    <div class="col-md-10">
+        <input asp-for="Done" class="form-control" />
+        <span asp-validation-for="Done" class="text-danger"></span>
+    </div>
+</div>
+
+<th>
+    @Html.DisplayNameFor(model => model.Done)
+</th>
+
+<td>
+    @Html.DisplayFor(modelItem => item.Done)
+</td>
+
+dotnet run
+
+git add .
+git commit -m "added done field"
+git push azure master
+
+az webapp log config --name <app_name> --resource-group myResourceGroup --application-logging true --level information
+
+
+az webapp log tail --name <app_name> --resource-group myResourceGroup
+
+az group delete --name myResourceGroup
+
+
+
+public bool Done { get; set; }
+
+Enable-Migrations
+
+Add-Migration AddProperty
+
+Update-Database
+
+public ActionResult Create([Bind(Include = "Description,CreatedDate,Done")] Todo todo)
+
+<div class="form-group">
+    @Html.LabelFor(model => model.Done, htmlAttributes: new { @class = "control-label col-md-2" })
+    <div class="col-md-10">
+        <div class="checkbox">
+            @Html.EditorFor(model => model.Done)
+            @Html.ValidationMessageFor(model => model.Done, "", new { @class = "text-danger" })
+        </div>
+    </div>
+</div>
+
+<th>
+    @Html.DisplayNameFor(model => model.Done)
+</th>
+
+<td>
+    @Html.DisplayFor(modelItem => item.Done)
+</td>
+
+
+
+mysql -u root -p
+
+CREATE DATABASE sampledb;
+
+quit
+
+git clone https://github.com/Azure-Samples/laravel-tasks
+
+
+cd laravel-tasks
+composer install
+
+APP_ENV=local
+APP_DEBUG=true
+APP_KEY=
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_DATABASE=sampledb
+DB_USERNAME=root
+DB_PASSWORD=<root_password>
+
+
+php artisan migrate
+
+php artisan key:generate
+
+php artisan serve
+
+az group create --name myResourceGroup --location "West Europe"
+
+az mysql server create --resource-group myResourceGroup --name <mysql_server_name> --location "West Europe" --admin-user <admin_user> --admin-password <admin_password> --sku-name B_Gen5_1
+
+az mysql server firewall-rule create --name allAzureIPs --server <mysql_server_name> --resource-group myResourceGroup --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+
+az mysql server firewall-rule create --name AllowLocalClient --server <mysql_server_name> --resource-group myResourceGroup --start-ip-address=<your_ip_address> --end-ip-address=<your_ip_address>
+
+
+mysql -u <admin_user>@<mysql_server_name> -h <mysql_server_name>.mysql.database.azure.com -P 3306 -p<PASSWORD> --ssl-mode=REQUIRED --ssl-ca=<PATH_TO_PEM>
+
+CREATE DATABASE sampledb;
+
+CREATE USER 'phpappuser' IDENTIFIED BY 'MySQLAzure2017'; 
+GRANT ALL PRIVILEGES ON sampledb.* TO 'phpappuser';
+
+quit
+
+APP_ENV=production
+APP_DEBUG=true
+APP_KEY=
+
+DB_CONNECTION=mysql
+DB_HOST=<mysql_server_name>.mysql.database.azure.com
+DB_DATABASE=sampledb
+DB_USERNAME=phpappuser@<mysql_server_name>
+DB_PASSWORD=MySQLAzure2017
+MYSQL_SSL=true
+
+'mysql' => [
+    ...
+    'sslmode' => env('DB_SSLMODE', 'prefer'),
+    'options' => (env('MYSQL_SSL')) ? [
+        PDO::MYSQL_ATTR_SSL_KEY    => '/ssl/BaltimoreCyberTrustRoot.crt.pem', 
+    ] : []
+],
+
+php artisan migrate --env=production --force
+
+php artisan key:generate --env=production --force
+
+php artisan serve --env=production
+
+git add .
+git commit -m "database.php updates"
+
+az webapp deployment user set --user-name <username> --password <password>
+
+
+az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku FREE
+
+# Bash
+az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --runtime "PHP|7.3" --deployment-local-git
+# PowerShell
+az --% webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --runtime "PHP|7.3" --deployment-local-git
+
+az webapp config appsettings set --name <app_name> --resource-group myResourceGroup --settings DB_HOST="<mysql_server_name>.mysql.database.azure.com" DB_DATABASE="sampledb" DB_USERNAME="phpappuser@<mysql_server_name>" DB_PASSWORD="MySQLAzure2017" MYSQL_SSL="true"
+
+'mysql' => [
+    'driver'    => 'mysql',
+    'host'      => env('DB_HOST', 'localhost'),
+    'database'  => env('DB_DATABASE', 'forge'),
+    'username'  => env('DB_USERNAME', 'forge'),
+    'password'  => env('DB_PASSWORD', ''),
+    ...
+],
+
+php artisan key:generate --show
+
+az webapp config appsettings set --name <app_name> --resource-group myResourceGroup --settings APP_KEY="<output_of_php_artisan_key:generate>" APP_DEBUG="true"
+
+az resource update --name web --resource-group myResourceGroup --namespace Microsoft.Web --resource-type config --parent sites/<app_name> --set properties.virtualApplications[0].physicalPath="site\wwwroot\public" --api-version 2015-06-01
+
+git remote add azure <deploymentLocalGitUrl-from-create-step>
+
+git push azure master
+
+Counting objects: 3, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 291 bytes | 0 bytes/s, done.
+Total 3 (delta 2), reused 0 (delta 0)
+remote: Updating branch 'master'.
+remote: Updating submodules.
+remote: Preparing deployment for commit id 'a5e076db9c'.
+remote: Running custom deployment command...
+remote: Running deployment command...
+...
+< Output has been truncated for readability >
+
+php artisan make:migration add_complete_column --table=tasks
+
+
+public function up()
+{
+    Schema::table('tasks', function (Blueprint $table) {
+        $table->boolean('complete')->default(False);
+    });
+}
+
+public function down()
+{
+    Schema::table('tasks', function (Blueprint $table) {
+        $table->dropColumn('complete');
+    });
+}
+
+php artisan migrate
+
+/**
+ * Toggle Task completeness
+ */
+Route::post('/task/{id}', function ($id) {
+    error_log('INFO: post /task/'.$id);
+    $task = Task::findOrFail($id);
+
+    $task->complete = !$task->complete;
+    $task->save();
+
+    return redirect('/');
+});
+
+<tr class="{{ $task->complete ? 'success' : 'active' }}" >
+
+<td class="table-text"><div>{{ $task->name }}</div></td>
+
+<td>
+    <form action="{{ url('task/'.$task->id) }}" method="POST">
+        {{ csrf_field() }}
+
+        <button type="submit" class="btn btn-xs">
+            <i class="fa {{$task->complete ? 'fa-check-square-o' : 'fa-square-o'}}"></i>
+        </button>
+        {{ $task->name }}
+    </form>
+</td>
+
+php artisan serve
+
+php artisan migrate --env=production --force
+
+git add .
+git commit -m "added complete checkbox"
+git push azure master
+
+az webapp log tail --name <app_name> --resource-group myResourceGroup
+
+
+
+mongo
+
+git clone https://github.com/Azure-Samples/meanjs.git
+
+cd meanjs
+npm install
+npm start
+
+--
+MEAN.JS - Development Environment
+
+Environment:     development
+Server:          http://0.0.0.0:3000
+Database:        mongodb://localhost/mean-dev
+App version:     0.5.0
+MEAN.JS version: 0.5.0
+--
+
+az group create --name myResourceGroup --location "West Europe"
+
+az cosmosdb create --name <cosmosdb_name> --resource-group myResourceGroup --kind MongoDB
+
+{
+  "consistencyPolicy":
+  {
+    "defaultConsistencyLevel": "Session",
+    "maxIntervalInSeconds": 5,
+    "maxStalenessPrefix": 100
+  },
+  "databaseAccountOfferType": "Standard",
+  "documentEndpoint": "https://<cosmosdb_name>.documents.azure.com:443/",
+  "failoverPolicies": 
+  ...
+  < Output truncated for readability >
+}
+
+az cosmosdb list-keys --name <cosmosdb_name> --resource-group myResourceGroup
+
+{
+  "primaryMasterKey": "RS4CmUwzGRASJPMoc0kiEvdnKmxyRILC9BWisAYh3Hq4zBYKr0XQiSE4pqx3UchBeO4QRCzUt1i7w0rOkitoJw==",
+  "primaryReadonlyMasterKey": "HvitsjIYz8TwRmIuPEUAALRwqgKOzJUjW22wPL2U8zoMVhGvregBkBk9LdMTxqBgDETSq7obbwZtdeFY7hElTg==",
+  "secondaryMasterKey": "Lu9aeZTiXU4PjuuyGBbvS1N9IRG3oegIrIh95U6VOstf9bJiiIpw3IfwSUgQWSEYM3VeEyrhHJ4rn3Ci0vuFqA==",
+  "secondaryReadonlyMasterKey": "LpsCicpVZqHRy7qbMgrzbRKjbYCwCKPQRl0QpgReAOxMcggTvxJFA94fTi0oQ7xtxpftTJcXkjTirQ0pT7QFrQ=="
+}
+
+module.exports = {
+  db: {
+    uri: 'mongodb://<cosmosdb_name>:<primary_master_key>@<cosmosdb_name>.documents.azure.com:10250/mean?ssl=true&sslverifycertificate=false'
+  }
+};
+
+gulp prod
+
+# Bash
+NODE_ENV=production node server.js
+
+# Windows PowerShell
+$env:NODE_ENV = "production" 
+node server.js
+
+--
+MEAN.JS
+
+Environment:     production
+Server:          http://0.0.0.0:8443
+Database:        mongodb://<cosmosdb_name>:<primary_master_key>@<cosmosdb_name>.documents.azure.com:10250/mean?ssl=true&sslverifycertificate=false
+App version:     0.5.0
+MEAN.JS version: 0.5.0
+
+az webapp deployment user set --user-name <username> --password <password>
+
+az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku FREE
+
+{ 
+  "adminSiteName": null,
+  "appServicePlanName": "myAppServicePlan",
+  "geoRegion": "West Europe",
+  "hostingEnvironmentProfile": null,
+  "id": "/subscriptions/0000-0000/resourceGroups/myResourceGroup/providers/Microsoft.Web/serverfarms/myAppServicePlan",
+  "kind": "app",
+  "location": "West Europe",
+  "maximumNumberOfWorkers": 1,
+  "name": "myAppServicePlan",
+  < JSON data removed for brevity. >
+  "targetWorkerSizeId": 0,
+  "type": "Microsoft.Web/serverfarms",
+  "workerTierName": null
+}
+
+{ 
+  "adminSiteName": null,
+  "appServicePlanName": "myAppServicePlan",
+  "geoRegion": "West Europe",
+  "hostingEnvironmentProfile": null,
+  "id": "/subscriptions/0000-0000/resourceGroups/myResourceGroup/providers/Microsoft.Web/serverfarms/myAppServicePlan",
+  "kind": "app",
+  "location": "West Europe",
+  "maximumNumberOfWorkers": 1,
+  "name": "myAppServicePlan",
+  < JSON data removed for brevity. >
+  "targetWorkerSizeId": 0,
+  "type": "Microsoft.Web/serverfarms",
+  "workerTierName": null
+}
+
+
+# Bash
+az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --runtime "NODE|6.9" --deployment-local-git
+# PowerShell
+az --% webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --runtime "NODE|6.9" --deployment-local-git
+
+
+Local git is configured with url of 'https://<username>@<app-name>.scm.azurewebsites.net/<app-name>.git'
+{
+  "availabilityState": "Normal",
+  "clientAffinityEnabled": true,
+  "clientCertEnabled": false,
+  "cloningInfo": null,
+  "containerSize": 0,
+  "dailyMemoryTimeQuota": 0,
+  "defaultHostName": "<app-name>.azurewebsites.net",
+  "deploymentLocalGitUrl": "https://<username>@<app-name>.scm.azurewebsites.net/<app-name>.git",
+  "enabled": true,
+  < JSON data removed for brevity. >
+}
+
+az webapp config appsettings set --name <app_name> --resource-group myResourceGroup --settings MONGODB_URI="mongodb://<cosmosdb_name>:<primary_master_key>@<cosmosdb_name>.documents.azure.com:10250/mean?ssl=true"
+
+
+
+db: {
+  uri: ... || process.env.MONGODB_URI || ...,
+  ...
+},
+
+
+git remote add azure <deploymentLocalGitUrl-from-create-step>
+
+git push azure master
+
+Counting objects: 5, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 489 bytes | 0 bytes/s, done.
+Total 5 (delta 3), reused 0 (delta 0)
+remote: Updating branch 'master'.
+remote: Updating submodules.
+remote: Preparing deployment for commit id '6c7c716eee'.
+remote: Running custom deployment command...
+remote: Running deployment command...
+remote: Handling node.js deployment.
+.
+.
+.
+remote: Deployment successful.
+To https://<app_name>.scm.azurewebsites.net/<app_name>.git
+ * [new branch]      master -> master
+ 
+ 
+ http://<app_name>.azurewebsites.net
+ 
+ 
+ const ArticleSchema = new Schema({
+  ...,
+  user: {
+    type: Schema.ObjectId,
+    ref: 'User'
+  },
+  comment: {
+    type: String,
+    default: '',
+    trim: true
+  }
+});
+
+
+exports.update = function (req, res) {
+  let article = req.article;
+
+  article.title = req.body.title;
+  article.content = req.body.content;
+  article.comment = req.body.comment;
+
+  ...
+};
+
+
+<p class="lead" ng-bind="vm.article.comment"></p>
+
+
+<p class="list-group-item-text" ng-bind="article.comment"></p>
+
+<p class="list-group-item-text" data-ng-bind="article.comment"></p>
+
+<div class="form-group">
+  <button type="submit" class="btn btn-default">{{vm.article._id ? 'Update' : 'Create'}}</button>
+</div>
+
+
+<div class="form-group">
+  <label class="control-label" for="comment">Comment</label>
+  <textarea name="comment" data-ng-model="vm.article.comment" id="comment" class="form-control" cols="30" rows="10" placeholder="Comment"></textarea>
+</div>
+
+<div class="form-group">
+  <label class="control-label" for="comment">Comment</label>
+  <textarea name="comment" data-ng-model="vm.article.comment" id="comment" class="form-control" cols="30" rows="10" placeholder="Comment"></textarea>
+</div>
+
+
+# Bash
+gulp prod
+NODE_ENV=production node server.js
+
+# Windows PowerShell
+gulp prod
+$env:NODE_ENV = "production" 
+node server.js
+
+ 
+ git commit -am "added article comment"
+git push azure master
+
+
+az webapp log tail --name <app_name> --resource-group myResourceGroup
+
+
+az group delete --name myResourceGroup
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

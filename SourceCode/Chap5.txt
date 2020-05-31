@@ -1,0 +1,32 @@
+& $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon .
+
+docker --version
+
+docker run hello-world
+
+docker image ls
+
+> docker --help
+> docker container --help
+> docker container ls --help
+> docker run --help
+
+docker run --interactive --tty ubuntu bash
+
+docker run --detach --publish 80:80 --name webserver nginx
+
+docker container ls
+
+docker container stop webserver
+
+docker container rm webserver laughing_kowalevski relaxed_sammet
+
+FROM mcr.microsoft.com/dotnet/framework/aspnet:4.7.2-windowsservercore-ltsc2019
+
+https://<app_name>.scm.azurewebsites.net/api/logstream
+
+<div class="jumbotron">
+    <h1>ASP.NET in Azure!</h1>
+    <p class="lead">This is a simple app that we've built that demonstrates how to deploy a .NET app to Azure App Service.</p>
+</div>
+

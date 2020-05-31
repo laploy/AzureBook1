@@ -1,0 +1,216 @@
+git clone https://github.com/Azure-Samples/php-docs-hello-world
+cd php-docs-hello-world
+
+php -S localhost:8080
+
+az webapp deployment user set --user-name <username> --password <password>
+
+az group create --name myResourceGroup --location "West Europe"
+
+az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku F1 --is-linux
+
+{ 
+  "adminSiteName": null,
+  "appServicePlanName": "myAppServicePlan",
+  "geoRegion": "West Europe",
+  "hostingEnvironmentProfile": null,
+  "id": "/subscriptions/0000-0000/resourceGroups/myResourceGroup/providers/Microsoft.Web/serverfarms/myAppServicePlan",
+  "kind": "linux",
+  "location": "West Europe",
+  "maximumNumberOfWorkers": 1,
+  "name": "myAppServicePlan",
+  < JSON data removed for brevity. >
+  "targetWorkerSizeId": 0,
+  "type": "Microsoft.Web/serverfarms",
+  "workerTierName": null
+}
+
+# Bash
+az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --runtime "PHP|7.0" --deployment-local-git
+# PowerShell
+az --% webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app-name> --runtime "PHP|7.0" --deployment-local-git
+
+Local git is configured with url of 'https://<username>@<app-name>.scm.azurewebsites.net/<app-name>.git'
+{
+  "availabilityState": "Normal",
+  "clientAffinityEnabled": true,
+  "clientCertEnabled": false,
+  "cloningInfo": null,
+  "containerSize": 0,
+  "dailyMemoryTimeQuota": 0,
+  "defaultHostName": "<app-name>.azurewebsites.net",
+  "deploymentLocalGitUrl": "https://<username>@<app-name>.scm.azurewebsites.net/<app-name>.git",
+  "enabled": true,
+  < JSON data removed for brevity. >
+}
+
+http://<app_name>.azurewebsites.net
+
+git remote add azure <deploymentLocalGitUrl-from-create-step>
+
+git push azure master
+
+Counting objects: 2, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (2/2), 352 bytes | 0 bytes/s, done.
+Total 2 (delta 1), reused 0 (delta 0)
+remote: Updating branch 'master'.
+remote: Updating submodules.
+remote: Preparing deployment for commit id '25f18051e9'.
+remote: Generating deployment script.
+remote: Running deployment command...
+remote: Handling Basic Web Site deployment.
+remote: Kudu sync from: '/home/site/repository' to: '/home/site/wwwroot'
+remote: Copying file: '.gitignore'
+remote: Copying file: 'LICENSE'
+remote: Copying file: 'README.md'
+remote: Copying file: 'index.php'
+remote: Ignoring: .git
+remote: Finished successfully.
+remote: Running post deployment command(s)...
+remote: Deployment successful.
+To https://<app_name>.scm.azurewebsites.net/<app_name>.git
+   cc39b1e..25f1805  master -> master
+   
+http://<app_name>.azurewebsites.net
+
+echo "Hello Azure!";
+
+git commit -am "updated output"
+git push azure master
+
+az group delete --name myResourceGroup   
+
+<div class="jumbotron">
+    <h1>ASP.NET in Azure!</h1>
+    <p class="lead">This is a simple app that we've built that demonstrates how to deploy a .NET app to Azure App Service.</p>
+</div>
+
+
+
+git clone https://github.com/Azure-Samples/nodejs-docs-hello-world
+
+cd nodejs-docs-hello-world
+
+npm start
+
+code .
+
+export HTTPS_PROXY=https://username:password@proxy:8080
+export HTTP_PROXY=http://username:password@proxy:8080
+
+
+
+
+# bash
+
+mvn archetype:generate -DgroupId=example.demo
+ -DartifactId=helloworld -DarchetypeArtifactId=maven-archetype-webapp
+ 
+ 
+ code pom.xml
+ 
+ <plugins>
+    <!--*************************************************-->
+    <!-- Deploy to Tomcat in App Service Windows         -->
+    <!--*************************************************-->
+    <plugin>
+        <groupId>com.microsoft.azure</groupId>
+        <artifactId>azure-webapp-maven-plugin</artifactId>
+        <version>1.9.0</version>
+        <configuration>
+            <!-- Specify v2 schema -->
+            <schemaVersion>v2</schemaVersion>
+            <!-- App information -->
+            <subscriptionId>SUBSCRIPTION_ID</subscriptionId>
+            <resourceGroup>RESOURCEGROUP_NAME</resourceGroup>
+            <appName>WEBAPP_NAME</appName>
+            <region>REGION</region>
+            <!-- Java Runtime Stack for App Service on Windows-->
+            <runtime>
+                <os>windows</os>
+                <javaVersion>1.8</javaVersion>
+                <webContainer>tomcat 9.0</webContainer>
+            </runtime>
+            <deployment>
+                <resources>
+                    <resource>
+                        <directory>${project.basedir}/target</directory>
+                        <includes>
+                            <include>*.war</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </deployment>
+        </configuration>
+    </plugin>
+</plugins>
+
+
+mvn package azure-webapp:deploy
+
+
+az group delete --name myResourceGroup
+
+
+mvn archetype:generate "-DgroupId=example.demo" "-DartifactId=helloworld" "-DarchetypeArtifactId=maven-archetype-webapp"
+
+
+cd helloworld
+
+az login
+
+mvn com.microsoft.azure:azure-webapp-maven-plugin:1.9.0:config
+
+mvn package azure-webapp:deploy
+
+az group delete --name <your resource group name; for example: helloworld-1558400876966-rg> --yes
+
+
+mkdir quickstart
+
+cd $HOME/quickstart
+
+git clone https://github.com/Azure-Samples/html-docs-hello-world.git
+
+cd html-docs-hello-world
+
+az webapp up --location westeurope --name <app_name>
+
+az group delete --name appsvc_rg_Windows_westeurope
+
+
+git clone https://github.com/Azure-Samples/php-docs-hello-world
+cd php-docs-hello-world
+
+php -S localhost:8080
+
+az webapp deployment user set --user-name <username> --password <password>
+
+az group create --name myResourceGroup --location "West Europe"
+
+az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku FREE
+
+# Bash
+az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app_name> --runtime "PHP|7.0" --deployment-local-git
+# PowerShell
+az --% webapp create --resource-group myResourceGroup --plan myAppServicePlan --name <app_name> --runtime "PHP|7.0" --deployment-local-git
+
+http://<app name>.azurewebsites.net
+
+git remote add azure <deploymentLocalGitUrl-from-create-step>
+
+http://<app_name>.azurewebsites.net
+
+echo "Hello Azure!";
+
+git commit -am "updated output"
+git push azure master
+
+az group delete --name myResourceGroup
+
+
+
+
+
